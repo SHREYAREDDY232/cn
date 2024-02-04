@@ -1,0 +1,22 @@
+import java.io.; import java.net.; public class Sender
+{
+public static void main(String[] args) throws IOException
+{
+InetAddress addr = InetAddress.getByName(args[0]); byte[] buf = args[1].getBytes();
+DatagramPacket packet = new DatagramPacket(buf, buf.length, addr, 4444); DatagramSocket socket = new DatagramSocket();
+socket.send(packet);
+}
+}
+
+
+Receiver.java
+import java.io.; import java.net.; public class Receiver
+{
+public static void main(String[] args) throws IOException
+{
+DatagramSocket socket = new DatagramSocket(4444); byte[] buf = new byte[256];
+DatagramPacket packet = new DatagramPacket(buf, buf.length); System.out.println("Waiting ...");
+socket.receive(packet);
+String s = new String(packet.getData(), 0, packet.getLength()); System.out.println(packet.getAddress().getHostName() + ": " + s);
+}
+}
