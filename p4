@@ -1,31 +1,30 @@
-import time
+import numpy as np
+from sklearn.decomposition import TruncatedSVD
+from sklearn.feature_extraction.text import CountVectorizer
 
-def leaky_bucket():
-    bucketsize = int(input("Enter bucket size: "))
-    outgoing = int(input("Enter outgoing rate: "))
-    n = int(input("Enter the number of inputs: "))
-    store = 0
+# Sample text data
+documents = [
+    "baseball soccer basketball",
+    "soccer basketball tennis",
+    "tennis cricket",
+    "cricket soccer"
+]
 
-    while n != 0:
-        incoming = int(input("Incoming size is: "))
-        print("Bucket buffer size is {} out of {}".format(store, bucketsize))
-        if incoming <= (bucketsize - store):
-            store += incoming
-            print("Bucket buffer size is {} out of {}".format(store, bucketsize))
-        else:
-            print("Packet loss: {}".format(incoming - (bucketsize - store)))
-            store = bucketsize
-            print("Bucket buffer size is {} out of {}".format(store, bucketsize))
-        
-        if store < outgoing:
-            print("After outgoing: 0 packets left out of {} in buffer".format(bucketsize))
-            store = 0
-        else:
-            store -= outgoing
-            print("After outgoing: {} packets left out of {} in buffer".format(store, bucketsize))
-        
-        n -= 1
-        time.sleep(3)
+# Create a CountVectorizer to convert text data into a matrix of token counts
+vectorizer = CountVectorizer()
+X = vectorizer.fit_transform(documents)
 
-if _name_ == "_main_":
-    leaky_bucket()
+# Apply Latent Semantic Analysis (LSA)
+lsa = TruncatedSVD(n_components=2)  # You can adjust the number of components/topics
+lsa.fit(X)
+
+# Extract the components/topics
+terms = vectorizer.get_feature_names()
+topic_matrix = np.array([lsa.components_[i] / np.linalg.norm(lsa.components_[i]) for i in range(lsa.components_.shape[0])])
+
+# Print the topics
+print("Top terms for each topic:")
+for i, topic in enumerate(topic_matrix):
+    top_indices = topic.argsort()[-5:][::-1]  # Get the top 5 terms for each topic
+    top_terms = [terms[index] for index in top_indices]
+    print(f"Topic {i + 1}: {' '.join(top_terms)}")
