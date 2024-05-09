@@ -1,39 +1,57 @@
-import sys
+import numpy as np
+from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
+from gensim.models import Word2Vec
+text_data = [
+    "This is the first document.",
+    "This document is the second document.",
+    "And this is the third one.",
+    "Is this the first document?",
+]
+# i) One Hot Encoding
+def one_hot_encoding(text_data):
+    unique_words = set(" ".join(text_data).split())
+    encoded_data = []
+    for text in text_data:
+        encoded_text = [1 if word in text else 0 for word in unique_words]
+        encoded_data.append(encoded_text)
+    return np.array(encoded_data)
+one_hot_encoded = one_hot_encoding(text_data)
+print("One Hot Encoding:")
+print(one_hot_encoded)
 
-total_vertex = 9
+# ii) Bag of Words (BOW)
+vectorizer = CountVectorizer()
+bow_features = vectorizer.fit_transform(text_data)
+print("\nBag of Words (BOW):")
+print(bow_features.toarray())
+print(bow_features.toarray())
 
-def minimum_distance(distance, sp_set):
-    m = sys.maxsize
-    m_index = -1
-    for vx in range(total_vertex):
-        if sp_set[vx] == False and distance[vx] <= m:
-            m = distance[vx]
-            m_index = vx
-    return m_index
+# iii) n-grams
+ngram_vectorizer = CountVectorizer(ngram_range=(1, 2))
+ngram_features = ngram_vectorizer.fit_transform(text_data)
+print("\nn-grams:")
+print(ngram_features.toarray())
+tfidf_vectorizer = TfidfVectorizer()
+tfidf_features = tfidf_vectorizer.fit_transform(text_data)
+print("\nTf-Idf:")
+print(tfidf_features.toarray())
 
-def print_solution(distance, n):
-    print("The shortest Distance from source 0th node to all other nodes are: ")
-    for j in range(n):
-        print("To", j, "the shortest distance is:", distance[j])
+# v) Custom features (e.g., length of documents)
+custom_features = np.array([[len(doc)] for doc in text_data])
+print("\nCustom Features:")
+print(custom_features)
 
-def dijkstra(graph, s):
-    distance = [sys.maxsize] * total_vertex
-    sp_set = [False] * total_vertex
-    distance[s] = 0
-    for _ in range(total_vertex - 1):
-        u = minimum_distance(distance, sp_set)
-        sp_set[u] = True
-        for v in range(total_vertex):
-            if sp_set[v] == False and graph[u][v] != -1 and distance[u] != sys.maxsize and distance[u] + graph[u][v] < distance[v]:
-                distance[v] = distance[u] + graph[u][v]
-    print_solution(distance, total_vertex)
-graph = [[-1, 3, -1, -1, -1, -1, -1, 7, -1],
-         [3, -1, 7, -1, -1, -1, -1, 10, -1],
-         [-1, 7, -1, 6, -1, 2, -1, -1, -1],
-         [-1, -1, 6, -1, 8, 13, -1, -1, -1],
-         [-1, -1, -1, 8, -1, 9, -1, -1, -1],
-         [-1, -1, 2, 13, 9, -1, 4, -1, 5],
-         [-1, -1, -1, -1, -1, 4, -1, 2, 5],
-         [7, 10, -1, -1, -1, -1, 2, -1, 6],
-         [-1, -1, -1, -1, -1, 5, 5, 6, -1]]
-dijkstra(graph, 0)
+# vi) Word2Vec (Word Embedding)
+import pandas as pd
+from gensim.models import FastText
+
+sentences = [["I", "like", "apples"],
+["I", "enjoy", "eating", "fruits"]]
+# Training the FastText model
+model_fasttext = FastText(sentences, min_count=1, window=5, vector_size=100)
+# Accessing word vectors
+word_vectors = model_fasttext.wv
+# Creating a DataFrame for word vectors
+word_vectors_df = pd.DataFrame(word_vectors.vectors, index=word_vectors.index_to_key)
+# Displaying the word vectors DataFrame
+word_vectors_df.head(10)
